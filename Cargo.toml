@@ -1,0 +1,7 @@
+[package]
+name = "ashurbanipal_web"
+version = "0.1.0"
+authors = ["Tommy M. McGuire <mcguire@crsr.net>"]
+
+[dependencies]
+rustful = "0.2"
