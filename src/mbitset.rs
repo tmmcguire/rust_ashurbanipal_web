@@ -1,4 +1,5 @@
 //! Simple bit vector until std::collections::BitVec stabilizes.
+#![allow(dead_code)]
 
 use std::iter::FromIterator;
 
