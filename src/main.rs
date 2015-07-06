@@ -1,3 +1,4 @@
+mod combination;
 mod mbitset;
 mod recommendation;
 mod style;
@@ -17,7 +18,10 @@ fn main() {
     let topic = topic::Topic::read(&args[2]);
     let topic_rec = topic.sorted_results(773).unwrap();
 
-    for &(etext,dist) in topic_rec.iter() {
+    let combination = combination::Combination::new(&style, &topic);
+    let combination_rec = combination.sorted_results(773).unwrap();
+
+    for &(etext,dist) in combination_rec.iter() {
         println!("{} {}", etext, dist);
     }
 }
