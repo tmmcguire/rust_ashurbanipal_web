@@ -1,27 +1,44 @@
+#[macro_use]
+extern crate rustful;
+extern crate rustc_serialize;
+
 mod combination;
 mod mbitset;
 mod recommendation;
 mod style;
 mod topic;
+mod web;
 
 use std::env;
+use std::error::Error;
 
-use recommendation::Recommendation;
+use rustful::{Server,TreeRouter};
+use rustful::Method::Get;
+
+use web::{RecQuery,RecState};
 
 fn main() {
     let args : Vec<String> = env::args().collect();
     if args.len() < 3 { panic!("Usage: ashurbanipal_web pos-data topic-data"); }
-    
-    let style = style::Style::read(&args[1]);
-    let style_rec = style.sorted_results(773).unwrap();
 
-    let topic = topic::Topic::read(&args[2]);
-    let topic_rec = topic.sorted_results(773).unwrap();
+    let router = insert_routes! {
+        TreeRouter::new() => {
+            "style"          => Get : RecQuery::Style,
+            "topic"          => Get : RecQuery::Topic,
+            "combination"    => Get : RecQuery::Combination
+        }
+    };
 
-    let combination = combination::Combination::new(&style, &topic);
-    let combination_rec = combination.sorted_results(773).unwrap();
+    let server_result = Server {
+        host         : 8080.into(),
+        handlers     : router,
+        content_type : content_type!(Application / Json; Charset = Utf8),
+        global       : (RecState::new(&args[1], &args[2]),).into(),
+        ..Server::default()
+    }.run();
 
-    for &(etext,dist) in combination_rec.iter() {
-        println!("{} {}", etext, dist);
+    match server_result {
+        Ok(_) => {},
+        Err(e) => println!("could not start server: {}", e.description()),
     }
 }
