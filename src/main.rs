@@ -24,9 +24,10 @@ fn main() {
 
     let router = insert_routes! {
         TreeRouter::new() => {
-            "style"          => Get : RecQuery::Style,
-            "topic"          => Get : RecQuery::Topic,
-            "combination"    => Get : RecQuery::Combination
+            "style"            => Get : RecQuery::Style,
+            "topic"            => Get : RecQuery::Topic,
+            "combination"      => Get : RecQuery::Combination,
+            "lookup/:etext_no" => Get : RecQuery::TextLookup
         }
     };
 

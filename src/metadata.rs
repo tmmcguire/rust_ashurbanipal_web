@@ -75,7 +75,6 @@ impl Default for Text {
 }
 
 pub struct Metadata {
-    default_text: Text,
     metadata:     HashMap<Etext,Text>,
 }
 
@@ -104,13 +103,10 @@ impl Metadata {
                 ( etext_no, t )
             } ).collect();
 
-        Metadata { metadata: texts, default_text: Text::default() }
+        Metadata { metadata: texts, }
     }
 
-    pub fn get(&self, etext_no: Etext) -> &Text {
-        match self.metadata.get(&etext_no) {
-            Some(ref text) => text,
-            None           => &self.default_text,
-        }
+    pub fn get(&self, etext_no: Etext) -> Option<&Text> {
+        self.metadata.get(&etext_no)
     }
 }
