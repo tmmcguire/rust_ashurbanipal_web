@@ -4,6 +4,7 @@ extern crate rustc_serialize;
 
 mod combination;
 mod mbitset;
+mod metadata;
 mod recommendation;
 mod style;
 mod topic;
@@ -19,7 +20,7 @@ use web::{RecQuery,RecState};
 
 fn main() {
     let args : Vec<String> = env::args().collect();
-    if args.len() < 3 { panic!("Usage: ashurbanipal_web pos-data topic-data"); }
+    if args.len() < 4 { panic!("Usage: ashurbanipal_web pos-data topic-data metadata"); }
 
     let router = insert_routes! {
         TreeRouter::new() => {
@@ -33,7 +34,7 @@ fn main() {
         host         : 8080.into(),
         handlers     : router,
         content_type : content_type!(Application / Json; Charset = Utf8),
-        global       : (RecState::new(&args[1], &args[2]),).into(),
+        global       : (RecState::new(&args[1], &args[2], &args[3]),).into(),
         ..Server::default()
     }.run();
 
