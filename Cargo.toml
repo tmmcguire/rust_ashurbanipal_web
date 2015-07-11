@@ -6,3 +6,7 @@ authors = ["Tommy M. McGuire <mcguire@crsr.net>"]
 [dependencies]
 rustful = "0.2"
 rustc-serialize = "0.3"
+
+[dependencies.iterator-utilities]
+git = "https://github.com/tmmcguire/iterator_utilities.git"
+# git = "file:///home/mcguire/tmp/gutenberg/dvd/rust/iterator-utilities"
