@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate rustful;
 extern crate rustc_serialize;
+extern crate iterator_utilities;
 
 mod combination;
 mod mbitset;
@@ -9,6 +10,7 @@ mod recommendation;
 mod style;
 mod topic;
 mod web;
+mod nysiis;
 
 use std::env;
 use std::error::Error;
