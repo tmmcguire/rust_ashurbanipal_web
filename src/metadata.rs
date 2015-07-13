@@ -1,6 +1,7 @@
 //! Project Gutenberg text metadata routines.
 
 use std::collections::HashMap;
+use std::collections::hash_map;
 use std::fs::File;
 use std::io::{BufRead,BufReader};
 use std::path::Path;
@@ -86,7 +87,7 @@ impl Metadata {
             .map( |line| {
                 let line  = line.unwrap();
                 let elements: Vec<&str> = line.split('\t').collect();
-                let etext_no = elements[0].parse::<Etext>().unwrap();
+                let etext_no: Etext = elements[0].parse().unwrap();
                 let t = Text {
                       etext_no:          etext_no,
                       link:              elements[1].to_string(),
@@ -108,5 +109,9 @@ impl Metadata {
 
     pub fn get(&self, etext_no: Etext) -> Option<&Text> {
         self.metadata.get(&etext_no)
+    }
+
+    pub fn iter(&self) -> hash_map::Iter<Etext,Text> {
+        self.metadata.iter()
     }
 }

@@ -55,12 +55,12 @@ impl Style {
         let (etexts, vectors) : (Vec<Etext>,Vec<Vec<f64>>) =
             BufReader::new( File::open(path).unwrap() ).lines()
             .map( |line| {
-                let line         = line.unwrap();
-                let mut elements = line.split('\t');
+                let line                 = line.unwrap();
+                let mut elements         = line.split('\t');
                 // The first element of each line is the etext number.
-                let etext_no     = elements.next().unwrap().parse::<usize>().unwrap();
+                let etext_no: Etext      = elements.next().unwrap().parse().unwrap();
                 // The remaining elements are part-of-speech data for the etext.
-                let etext_data   = elements.map( |s| s.parse::<f64>().unwrap() ).collect();
+                let etext_data: Vec<f64> = elements.map( |s| s.parse().unwrap() ).collect();
                 (etext_no, etext_data)
             } ).unzip();
 

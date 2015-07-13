@@ -4,19 +4,19 @@ extern crate rustc_serialize;
 extern crate iterator_utilities;
 
 mod combination;
+mod index;
 mod mbitset;
 mod metadata;
+mod nysiis;
 mod recommendation;
 mod style;
 mod topic;
 mod web;
-mod nysiis;
 
 use std::env;
 use std::error::Error;
 
 use rustful::{Server,TreeRouter};
-use rustful::Method::Get;
 
 use web::{RecQuery,RecState};
 
@@ -29,7 +29,8 @@ fn main() {
             "style"            => Get : RecQuery::Style,
             "topic"            => Get : RecQuery::Topic,
             "combination"      => Get : RecQuery::Combination,
-            "lookup/:etext_no" => Get : RecQuery::TextLookup
+            "lookup/:etext_no" => Get : RecQuery::TextLookup,
+            "lookup"           => Get : RecQuery::TextSearch
         }
     };
 

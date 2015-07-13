@@ -2,8 +2,6 @@
 //!
 //! See https://en.wikipedia.org/wiki/New_York_State_Identification_and_Intelligence_System
 
-use std::str::Chars;
-
 use iterator_utilities::buffer::IteratorBuffer;
 
 pub fn encode(s: &str) -> String {
