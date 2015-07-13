@@ -10,7 +10,7 @@ use rustc_serialize::json;
 use combination::Combination;
 use index::Index;
 use metadata::{TextRef,Metadata};
-use recommendation::Recommendation;
+use recommendation::{Etext,Recommendation};
 use style::Style;
 use topic::Topic;
 
@@ -18,14 +18,11 @@ pub struct RecState(Style, Topic, Metadata, Index);
 
 impl RecState {
     pub fn new<P : AsRef<Path>>(style_path:P, topic_path:P, metadata_path:P) -> RecState {
+        let style = Style::read(style_path);
+        let topic = Topic::read(topic_path);
         let metadata = Metadata::read(metadata_path);
         let index    = Index::new(&metadata);
-        RecState(
-            Style::read(style_path),
-            Topic::read(topic_path),
-            metadata,
-            index,
-            )
+        RecState( style, topic, metadata, index )
     }
 }
 
@@ -56,18 +53,20 @@ fn handle_recommendation_query(r : &Recommendation, context: Context, mut respon
     let limit = optional("limit", 20, &context);
     match required("etext_no", &context) {
         Some(etext_no) => {
-            let rows = r.sorted_results(etext_no).unwrap();
-            response.set_status(StatusCode::Ok);
-            response.into_writer().send( json::encode(
-                &Recommendations {
-                    count : rows.len(),
-                    rows  : rows.iter()
-                        .skip(start).take(limit)
-                        .map( |&(e,s)| (metadata.get(e),s) )
-                        .filter( |&(ref o,_)| o.is_some() )
-                        .map( |(ref o,s)| o.unwrap().score(s) )
-                        .collect()
-                } ).unwrap() );
+            match r.sorted_results(etext_no) {
+                Some(rows) => {
+                    let recommendation = Recommendations {
+                        count : rows.len(),
+                        rows  : add_metadata(metadata, &rows, start, limit)
+                    };
+                    response.set_status(StatusCode::Ok);
+                    response.into_writer().send( json::encode(&recommendation).unwrap() );
+                }
+                None => {
+                    response.set_status(StatusCode::NotFound);
+                    response.into_writer().send("no matching etext");
+                }
+            }
         }
         None => {
             response.set_status(StatusCode::BadRequest);
@@ -105,17 +104,12 @@ fn handle_text_search(context: Context, mut response: Response) {
     match required::<String>("query", &context) {
         Some(query) => {
             let rows = index.get_entries(&query);
+            let recommendations = Recommendations {
+                count : rows.len(),
+                rows  : add_metadata(metadata, &rows, start, limit),
+            };
             response.set_status(StatusCode::Ok);
-            response.into_writer().send( json::encode(
-                &Recommendations {
-                    count : rows.len(),
-                    rows  : rows.iter()
-                        .skip(start).take(limit)
-                        .map( |&(e,s)| (metadata.get(e),s) )
-                        .filter( |&(ref o,_)| o.is_some() )
-                        .map( |(ref o,s)| o.unwrap().score(s) )
-                        .collect()
-                } ).unwrap() );
+            response.into_writer().send( json::encode(&recommendations).unwrap() );
         }
         None => {
             response.set_status(StatusCode::BadRequest);
@@ -140,4 +134,18 @@ fn required_path(v: &str, context: &Context) -> Option<usize> {
 struct Recommendations<'a> {
     count : usize,
     rows  : Vec<TextRef<'a>>,
+}
+
+fn add_metadata<'a>(metadata: &'a Metadata, rows: &Vec<(Etext,f64)>, start: usize, limit: usize) -> Vec<TextRef<'a>> {
+    rows.iter()
+        // limit rows to given window
+        .skip(start).take(limit)
+        // collect metadata for chosen texts
+        .map( |&(e,s)| (metadata.get(e),s) )
+        // filter out texts with no metadata
+        .filter( |&(ref o,_)| o.is_some() )
+        // combine the metadata and scored result
+        .map( |(ref o,s)| o.unwrap().score(s) )
+        // produce a vector
+        .collect()
 }
