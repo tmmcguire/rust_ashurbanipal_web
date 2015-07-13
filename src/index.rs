@@ -21,15 +21,9 @@ impl Index {
         // Compute a vector of keyword, etext_no, simple score triples.
         let mut postings: Vec<(String,Etext,f64)> = Vec::new();
         for (&etext_no, text) in metadata.iter() {
-            for title in text.title.split(' ').map( encode ) {
-                postings.push( (title, etext_no, 3.0f64) );
-            }
-            for author in text.author.split(' ').map( encode ) {
-                postings.push( (author, etext_no, 2.0f64) );
-            }
-            for subject in text.subject.split(' ').map( encode ) {
-                postings.push( (subject, etext_no, 1.0f64) );
-            }
+            postings.extend( text.title.split(' ').map(encode).map( |t| (t, etext_no, 3.0) ) );
+            postings.extend( text.author.split(' ').map(encode).map( |a| (a, etext_no, 2.0) ) );
+            postings.extend( text.subject.split(' ').map(encode).map( |s| (s, etext_no, 1.0) ) );
         }
         // Sort postings by keyword, then by etext_no.
         postings.sort_by(compare);
@@ -60,7 +54,8 @@ impl Index {
         results.sort_by( |l,r| {
             match l.1.partial_cmp(&r.1) {
                 Some(o) => o.reverse(),
-                None    => Ordering::Less
+                // floating point numbers are a pain in the ass.
+                None    => unimplemented!()
             }
         });
         results
