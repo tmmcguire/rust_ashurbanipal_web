@@ -54,18 +54,26 @@ impl Topic {
         let (etexts, vectors) : (Vec<Etext>,Vec<MBitSet>) =
             BufReader::new( File::open(path).unwrap() ).lines()
             .map( |line| {
-                let line         = line.unwrap();
-                let mut elements = line.split('\t');
+                let line              = line.unwrap();
+                let mut elements      = line.split('\t');
                 // The first element of each line is the etext number.
-                let etext_no     = elements.next().unwrap().parse::<usize>().unwrap();
+                let etext_no: Etext   = elements.next().unwrap().parse().unwrap();
                 // The remaining elements are common-noun bit numbers for the etext.
-                let etext_data   = elements.map( |s| s.parse::<usize>().unwrap() ).collect();
+                let etext_data: Etext = elements.map( |s| s.parse().unwrap() ).collect();
                 (etext_no, etext_data)
             } ).unzip();
 
         Topic {
             data           : vectors,
-            etext_to_index : etexts.iter().cloned().enumerate().map(|(x,y)| (y,x)).collect(),
+            etext_to_index : etexts.iter()
+                // duplicate etext_nos
+                .cloned()
+                // associate each etext_no with a row number
+                .enumerate()
+                // flip the pair, to map each etext_no to a row number
+                .map(|(x,y)| (y,x))
+                // collect into hashmap
+                .collect(),
             index_to_etext : etexts,
         }
     }
@@ -98,6 +106,7 @@ impl Recommendation for Topic {
             Some(idx) => &self.data[*idx],
         };
 
+        // Randomly large MBitSet to avoid allocations below.
         let mut intersection = MBitSet::with_capacity(31265);
         let mut union = MBitSet::with_capacity(31265);
 
@@ -110,7 +119,9 @@ impl Recommendation for Topic {
                 let union_card = union.set(row).or(vec).cardinality();
                 1f64 - (intersection_card as f64 / union_card as f64)
             })
+            // match each row with row number
             .enumerate()
+            // translate row numbers to etext_nos.
             .map( |(i,d)| (self.index_to_etext[i], d as f64) )
             .collect();
 

@@ -67,7 +67,15 @@ impl Style {
         Style {
             data           : vectors,
             // Create the mappings from vector index to etext number, and vice versa.
-            etext_to_index : etexts.iter().cloned().enumerate().map(|(x,y)| (y,x)).collect(),
+            etext_to_index : etexts.iter()
+                // duplicate etext_nos
+                .cloned()
+                // associate each etext_no with a row number
+                .enumerate()
+                // flip the pair, to map each etext_no to a row number
+                .map(|(x,y)| (y,x))
+                // collect into hashmap
+                .collect(),
             index_to_etext : etexts,
         }
     }
