@@ -10,7 +10,7 @@ use rustc_serialize::json;
 use combination::Combination;
 use index::Index;
 use metadata::{TextRef,Metadata};
-use recommendation::{Etext,Recommendation};
+use recommendation::Recommendation;
 use style::Style;
 use topic::Topic;
 
@@ -57,7 +57,7 @@ fn handle_recommendation_query(r : &Recommendation, context: Context, mut respon
                 Some(rows) => {
                     let recommendation = Recommendations {
                         count : rows.len(),
-                        rows  : add_metadata(metadata, &rows, start, limit)
+                        rows  : metadata.add_metadata(&rows, start, limit)
                     };
                     response.set_status(StatusCode::Ok);
                     response.into_writer().send( json::encode(&recommendation).unwrap() );
@@ -106,7 +106,7 @@ fn handle_text_search(context: Context, mut response: Response) {
             let rows = index.get_entries(&query);
             let recommendations = Recommendations {
                 count : rows.len(),
-                rows  : add_metadata(metadata, &rows, start, limit),
+                rows  : metadata.add_metadata(&rows, start, limit),
             };
             response.set_status(StatusCode::Ok);
             response.into_writer().send( json::encode(&recommendations).unwrap() );
@@ -122,30 +122,16 @@ fn required<T:FromStr>(v : &str, context : &Context) -> Option<T> {
     context.query.get(v).and_then( |s| s.parse::<T>().ok() )
 }
 
-fn optional(v : &str, default : usize, context : &Context) -> usize {
+fn optional<T:FromStr>(v : &str, default : T, context : &Context) -> T {
     required(v, context).unwrap_or(default)
 }
 
-fn required_path(v: &str, context: &Context) -> Option<usize> {
-    context.variables.get(v).and_then( |s| s.parse::<usize>().ok() )
+fn required_path<T:FromStr>(v: &str, context: &Context) -> Option<T> {
+    context.variables.get(v).and_then( |s| s.parse().ok() )
 }
 
 #[derive(RustcEncodable)]
 struct Recommendations<'a> {
     count : usize,
     rows  : Vec<TextRef<'a>>,
-}
-
-fn add_metadata<'a>(metadata: &'a Metadata, rows: &Vec<(Etext,f64)>, start: usize, limit: usize) -> Vec<TextRef<'a>> {
-    rows.iter()
-        // limit rows to given window
-        .skip(start).take(limit)
-        // collect metadata for chosen texts
-        .map( |&(e,s)| (metadata.get(e),s) )
-        // filter out texts with no metadata
-        .filter( |&(ref o,_)| o.is_some() )
-        // combine the metadata and scored result
-        .map( |(ref o,s)| o.unwrap().score(s) )
-        // produce a vector
-        .collect()
 }

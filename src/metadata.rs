@@ -114,4 +114,19 @@ impl Metadata {
     pub fn iter(&self) -> hash_map::Iter<Etext,Text> {
         self.metadata.iter()
     }
+
+
+    pub fn add_metadata<'a>(&'a self, rows: &Vec<(Etext,f64)>, start: usize, limit: usize) -> Vec<TextRef<'a>> {
+        rows.iter()
+            // limit rows to given window
+            .skip(start).take(limit)
+            // collect metadata for chosen texts
+            .map( |&(e,s)| (self.get(e),s) )
+            // filter out texts with no metadata
+            .filter( |&(ref o,_)| o.is_some() )
+            // combine the metadata and scored result
+            .map( |(ref o,s)| o.unwrap().score(s) )
+            // produce a vector
+            .collect()
+    }
 }
