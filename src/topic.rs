@@ -54,12 +54,12 @@ impl Topic {
         let (etexts, vectors) : (Vec<Etext>,Vec<MBitSet>) =
             BufReader::new( File::open(path).unwrap() ).lines()
             .map( |line| {
-                let line              = line.unwrap();
-                let mut elements      = line.split('\t');
+                let line            = line.unwrap();
+                let mut elements    = line.split('\t');
                 // The first element of each line is the etext number.
-                let etext_no: Etext   = elements.next().unwrap().parse().unwrap();
+                let etext_no: Etext = elements.next().unwrap().parse().unwrap();
                 // The remaining elements are common-noun bit numbers for the etext.
-                let etext_data: Etext = elements.map( |s| s.parse().unwrap() ).collect();
+                let etext_data = elements.map( |s| s.parse::<usize>().unwrap() ).collect();
                 (etext_no, etext_data)
             } ).unzip();
 
