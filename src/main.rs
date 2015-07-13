@@ -15,6 +15,7 @@ mod web;
 
 use std::env;
 use std::error::Error;
+use std::str::FromStr;
 
 use rustful::{Server,TreeRouter};
 
@@ -35,7 +36,7 @@ fn main() {
     };
 
     let server_result = Server {
-        host         : 8080.into(),
+        host         : FromStr::from_str("127.0.0.1:8080").unwrap(),
         handlers     : router,
         content_type : content_type!(Application / Json; Charset = Utf8),
         global       : (RecState::new(&args[1], &args[2], &args[3]),).into(),
