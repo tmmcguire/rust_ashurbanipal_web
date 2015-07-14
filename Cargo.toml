@@ -1,7 +1,10 @@
 [package]
 name = "ashurbanipal_web"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Tommy M. McGuire <mcguire@crsr.net>"]
+description = "A lighter-weight web application server for Ashurbanipal data"
+repository = "https://github.com/tmmcguire/rust_ashurbanipal_web"
+license = "GPL2"
 
 [dependencies]
 rustful = "0.2"
@@ -9,4 +12,3 @@ rustc-serialize = "0.3"
 
 [dependencies.iterator-utilities]
 git = "https://github.com/tmmcguire/iterator_utilities.git"
-# git = "file:///home/mcguire/tmp/gutenberg/dvd/rust/iterator-utilities"
