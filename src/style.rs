@@ -28,14 +28,16 @@ use std::path::Path;
 
 use recommendation::{Etext,Recommendation,Score};
 
+type Proportion = f64;
+
 /// Part-of-speech / style data
 pub struct Style {
     /// Part-of-speech data, in matrix form.
-    pub data           : Vec<Vec<Score>>,
+    data           : Vec<Vec<Proportion>>,
     /// Map to convert etext number to index into data rows.
-    pub etext_to_index : HashMap<Etext,usize>,
+    etext_to_index : HashMap<Etext,usize>,
     /// Map to convert data row index into an etext number.
-    pub index_to_etext : Vec<Etext>,
+    index_to_etext : Vec<Etext>,
 }
 
 impl Style {
@@ -80,7 +82,7 @@ impl Style {
                 // The first element of each line is the etext number.
                 let etext_no: Etext      = elements.next().unwrap().parse().unwrap();
                 // The remaining elements are part-of-speech data for the etext.
-                let etext_data: Vec<Score> = elements.map( |s| s.parse().unwrap() ).collect();
+                let etext_data: Vec<Proportion> = elements.map( |s| s.parse().unwrap() ).collect();
                 (etext_no, etext_data)
             } ).unzip();
 

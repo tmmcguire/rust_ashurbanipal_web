@@ -22,6 +22,7 @@
 
 #![allow(dead_code)]
 
+use std::cmp;
 use std::iter::FromIterator;
 
 /// Type of elements used to store bits.
@@ -86,8 +87,7 @@ impl MBitSet {
             false
         } else {
             let (elt,bit) = elt_pair(b);
-            let len = self.storage.len();
-            if len <= elt {
+            if self.storage.len() <= elt {
                 self.extend(elt + 1);
             }
             self.storage[elt] |= bit;
@@ -96,12 +96,12 @@ impl MBitSet {
     }
 
     pub fn and(&mut self, other : &MBitSet) -> &mut Self {
-        let mut len = self.storage.len();
-        if other.storage.len() < len {
-            len = other.storage.len();
-        }
+        let len = cmp::min(self.storage.len(), other.storage.len());
         for i in 0..len {
             self.storage[i] &= other.storage[i];
+        }
+        for i in len..self.storage.len() {
+            self.storage[i] = 0;
         }
         self
     }
