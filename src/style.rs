@@ -6,12 +6,12 @@ use std::io::{BufRead,BufReader};
 use std::ops::Add;
 use std::path::Path;
 
-use recommendation::{Etext,Recommendation};
+use recommendation::{Etext,Recommendation,Score};
 
 /// Part-of-speech / style data
 pub struct Style {
     /// Part-of-speech data, in matrix form.
-    pub data           : Vec<Vec<f64>>,
+    pub data           : Vec<Vec<Score>>,
     /// Map to convert etext number to index into data rows.
     pub etext_to_index : HashMap<Etext,usize>,
     /// Map to convert data row index into an etext number.
@@ -52,7 +52,7 @@ impl Style {
     /// ```
     ///
     pub fn read<P : AsRef<Path>>(path : P) -> Style {
-        let (etexts, vectors) : (Vec<Etext>,Vec<Vec<f64>>) =
+        let (etexts, vectors) : (Vec<Etext>,Vec<Vec<Score>>) =
             BufReader::new( File::open(path).unwrap() ).lines()
             .map( |line| {
                 let line                 = line.unwrap();
@@ -60,7 +60,7 @@ impl Style {
                 // The first element of each line is the etext number.
                 let etext_no: Etext      = elements.next().unwrap().parse().unwrap();
                 // The remaining elements are part-of-speech data for the etext.
-                let etext_data: Vec<f64> = elements.map( |s| s.parse().unwrap() ).collect();
+                let etext_data: Vec<Score> = elements.map( |s| s.parse().unwrap() ).collect();
                 (etext_no, etext_data)
             } ).unzip();
 
@@ -101,7 +101,7 @@ impl Recommendation for Style {
     /// `results` will be Some containing a vector of scores compared
     /// with etext number 773, Oscar Wilde's *Lord Arthur Savile's
     /// Crime and Other Stories*.
-    fn scored_results(&self, etext_no : Etext) -> Option<Vec<(Etext,f64)>> {
+    fn scored_results(&self, etext_no : Etext) -> Option<Vec<(Etext,Score)>> {
 
         let row = match self.etext_to_index.get(&etext_no) {
             None      => return None,
@@ -123,14 +123,14 @@ impl Recommendation for Style {
 }
 
 /// Compute the Euclidian distance between the two vectors.
-fn distance(v1 : &Vec<f64>, v2 : &Vec<f64>) -> f64 {
+fn distance(v1 : &Vec<Score>, v2 : &Vec<Score>) -> Score {
     assert_eq!(v1.len(), v2.len());
     let sq = v1.iter()
         // Match each element with that from the other vector.
         .zip( v2.iter() )
         // Compute (elt1 - elt2)^2.
-        .map( |(x,y)| f64::powi(x-y,2) )
+        .map( |(x,y)| Score::powi(x-y,2) )
         // Accumulate the value.
-        .fold(0f64, Add::add);
-    f64::sqrt(sq)
+        .fold(0 as Score, Add::add);
+    Score::sqrt(sq)
 }

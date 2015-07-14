@@ -35,9 +35,13 @@ fn main() {
         }
     };
 
+    let rec_state = RecState::new(&args[1], &args[2], &args[3]);
+
+    println!("serving...");
+
     let server = Server {
         content_type : content_type!(Application / Json; Charset = Utf8),
-        global       : (RecState::new(&args[1], &args[2], &args[3]),).into(),
+        global       : (rec_state,).into(),
         handlers     : router,
         host         : FromStr::from_str("127.0.0.1:8080").unwrap(),
         log          : Box::new( rustful::log::StdOut ),

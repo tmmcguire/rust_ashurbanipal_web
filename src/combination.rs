@@ -1,6 +1,6 @@
 //! Combined style and topic recommendations.
 
-use recommendation::{Etext,Recommendation};
+use recommendation::{Etext,Recommendation,Score};
 
 /// Combined recommendations data
 pub struct Combination<'a> {
@@ -42,7 +42,7 @@ impl<'a> Recommendation for Combination<'a> {
     /// `results` will be Some containing a vector of scores compared
     /// with etext number 773, Oscar Wilde's *Lord Arthur Savile's
     /// Crime and Other Stories*.
-    fn scored_results(&self, etext_no : Etext) -> Option<Vec<(Etext,f64)>> {
+    fn scored_results(&self, etext_no : Etext) -> Option<Vec<(Etext,Score)>> {
         match (self.left.scored_results(etext_no), self.right.scored_results(etext_no)) {
             (Some(left), Some(right)) => {
 

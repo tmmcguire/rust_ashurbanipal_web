@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::{BufRead,BufReader};
 use std::path::Path;
 
-use recommendation::Etext;
+use recommendation::{Etext,Score};
 
 #[derive(RustcEncodable)]
 pub struct Text {
@@ -20,7 +20,7 @@ pub struct Text {
     pub loc_class:         String,
     pub notes:             String,
     pub copyright_status:  String,
-    pub score:             Option<f64>,
+    pub score:             Option<Score>,
 }
 
 // TODO: find out if this is helpful over plain Text.
@@ -36,11 +36,11 @@ pub struct TextRef<'a> {
     pub loc_class:         &'a str,
     pub notes:             &'a str,
     pub copyright_status:  &'a str,
-    pub score:             Option<f64>,
+    pub score:             Option<Score>,
 }
 
 impl Text {
-    pub fn score(&self, score : f64) -> TextRef {
+    pub fn score(&self, score : Score) -> TextRef {
         TextRef {
             etext_no:          self.etext_no,
             link:              &self.link,
@@ -116,7 +116,7 @@ impl Metadata {
     }
 
 
-    pub fn add_metadata<'a>(&'a self, rows: &Vec<(Etext,f64)>, start: usize, limit: usize) -> Vec<TextRef<'a>> {
+    pub fn add_metadata<'a>(&'a self, rows: &Vec<(Etext,Score)>, start: usize, limit: usize) -> Vec<TextRef<'a>> {
         rows.iter()
             // limit rows to given window
             .skip(start).take(limit)

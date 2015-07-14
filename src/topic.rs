@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::{BufRead,BufReader};
 use std::path::Path;
 
-use recommendation::{Etext,Recommendation};
+use recommendation::{Etext,Recommendation,Score};
 use mbitset::MBitSet;
 
 /// Common nouns-based topic data.
@@ -99,7 +99,7 @@ impl Recommendation for Topic {
     /// `results` will be Some containing a vector of scores compared
     /// with etext number 773, Oscar Wilde's *Lord Arthur Savile's
     /// Crime and Other Stories*.
-    fn scored_results(&self, etext_no : Etext) -> Option<Vec<(Etext,f64)>> {
+    fn scored_results(&self, etext_no : Etext) -> Option<Vec<(Etext,Score)>> {
 
         let row = match self.etext_to_index.get(&etext_no) {
             None      => return None,
@@ -122,7 +122,7 @@ impl Recommendation for Topic {
             // match each row with row number
             .enumerate()
             // translate row numbers to etext_nos.
-            .map( |(i,d)| (self.index_to_etext[i], d as f64) )
+            .map( |(i,d)| (self.index_to_etext[i], d as Score) )
             .collect();
 
         Some(result)

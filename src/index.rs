@@ -5,9 +5,9 @@ use std::collections::HashMap;
 
 use metadata::Metadata;
 use nysiis::encode;
-use recommendation::Etext;
+use recommendation::{Etext,Score};
 
-type ScoredResult = (Etext,f64);
+type ScoredResult = (Etext,Score);
 
 type ScoredDictionary = HashMap<String,Vec<ScoredResult>>;
 
@@ -19,7 +19,7 @@ pub struct Index {
 impl Index {
     pub fn new(metadata: &Metadata) -> Index {
         // Compute a vector of keyword, etext_no, simple score triples.
-        let mut postings: Vec<(String,Etext,f64)> = Vec::new();
+        let mut postings: Vec<(String,Etext,Score)> = Vec::new();
         for (&etext_no, text) in metadata.iter() {
             postings.extend( text.title.split(' ').map(encode).map( |t| (t, etext_no, 3.0) ) );
             postings.extend( text.author.split(' ').map(encode).map( |a| (a, etext_no, 2.0) ) );
@@ -34,7 +34,7 @@ impl Index {
             if cls.len() > 0 {
                 let key = cls[0].0.clone();
                 let etext_no = cls[0].1;
-                let score = cls.iter().fold(0.0f64, |a,p| a + p.2);
+                let score = cls.iter().fold(0.0 as Score, |a,p| a + p.2);
                 index.entry(key).or_insert(Vec::new()).push((etext_no,score));
             }
         }
@@ -95,7 +95,7 @@ fn merge_postings(results: &mut Vec<ScoredResult>, postings: &Vec<ScoredResult>)
     }
 }
 
-fn compare(left: &(String,Etext,f64), right: &(String,Etext,f64)) -> Ordering {
+fn compare(left: &(String,Etext,Score), right: &(String,Etext,Score)) -> Ordering {
     match left.0.cmp(&right.0) {
         Ordering::Less =>    Ordering::Less,
         Ordering::Equal =>   left.1.cmp(&right.1),
@@ -103,7 +103,7 @@ fn compare(left: &(String,Etext,f64), right: &(String,Etext,f64)) -> Ordering {
     }
 }
 
-fn equal(left: &(String,Etext,f64), right: &(String,Etext,f64)) -> bool {
+fn equal(left: &(String,Etext,Score), right: &(String,Etext,Score)) -> bool {
     match compare(left,right) {
         Ordering::Equal => true,
         _               => false,
