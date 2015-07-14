@@ -100,18 +100,19 @@ impl Index {
 fn merge_postings(results: &mut Vec<ScoredResult>, postings: &Vec<ScoredResult>) {
     let mut r = 0;
     let mut p = 0;
-    while p < postings.len() {
-        if r == results.len() || results[r].0 > postings[p].0 {
-            results.insert( r, postings[p].clone() );
-            r += 1;
+    while r < results.len() && p < postings.len() {
+        if results[r].0 > postings[p].0 {
             p += 1;
         } else if results[r].0 < postings[p].0 {
-            r += 1;
+            results.remove(r);
         } else /* results[r].0 == postings[p].0 */ {
             results[r].1 += postings[p].1;
             r += 1;
             p += 1;
         }
+    }
+    while r < results.len() {
+        results.remove(r);
     }
 }
 
