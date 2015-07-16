@@ -23,6 +23,8 @@
 use std::cmp::{Ord,Ordering};
 use std::collections::HashMap;
 
+use iterator_utilities::equivalence_class::equivalence_classes;
+
 use metadata::Metadata;
 use nysiis::encode;
 use recommendation::{Etext,Score};
@@ -50,13 +52,10 @@ impl Index {
         // Accumulate scores for keyword, etext_no, then insert
         // etext_no and combined score into index under keyword.
         let mut index = HashMap::new();
-        for cls in equivalence_classes(&postings, &equal) {
-            if cls.len() > 0 {
-                let key = cls[0].0.clone();
-                let etext_no = cls[0].1;
-                let score = cls.iter().fold(0.0 as Score, |a,p| a + p.2);
-                index.entry(key).or_insert(Vec::new()).push((etext_no,score));
-            }
+        for cls in equivalence_classes(&postings, |l,r| l.0 == r.0 && l.1 == r.1 ) {
+            let r: (&str,Etext,Score) =
+                cls.fold(("", 0, 0 as Score), |a,p| (&p.0, p.1, a.2+p.2));
+            index.entry(r.0.to_string()).or_insert( Vec::new() ).push( (r.1,r.2) );
         }
         // Sort stored postings lists by etext_no.
         for (_,postings) in index.iter_mut() {
@@ -118,67 +117,7 @@ fn merge_postings(results: &mut Vec<ScoredResult>, postings: &Vec<ScoredResult>)
 
 fn compare(left: &(String,Etext,Score), right: &(String,Etext,Score)) -> Ordering {
     match left.0.cmp(&right.0) {
-        Ordering::Less =>    Ordering::Less,
-        Ordering::Equal =>   left.1.cmp(&right.1),
-        Ordering::Greater => Ordering::Greater,
+        Ordering::Equal => left.1.cmp(&right.1),
+        other           => other
     }
 }
-
-fn equal(left: &(String,Etext,Score), right: &(String,Etext,Score)) -> bool {
-    match compare(left,right) {
-        Ordering::Equal => true,
-        _               => false,
-    }
-}
-
-fn equivalence_classes<'a, T>(vector: &'a Vec<T>, pred: &Fn(&T,&T)->bool) -> Vec<&'a [T]>
-    where T:PartialOrd {
-        let mut result = Vec::new();
-        if vector.len() > 0 {
-            let mut i = 0;
-            let mut j = 1;
-            while j < vector.len() {
-                if !pred(&vector[i], &vector[j]) {
-                    result.push( &vector[i..j] );
-                    i = j;
-                }
-                j += 1;
-            }
-            result.push( &vector[i..j] );
-        }
-        result
-    }
-
-// pub struct EQIter<T,I,F> where I:Iterator<Item=T>, F:Fn(&T,&T)->bool {
-//     iterator: Peekable<I>,
-//     last_seen: Option<T>,
-//     predicate: F,
-// }
-// 
-// impl<T,I,F> EQIter<T,I,F> where I:Iterator<Item=T>, F:Fn(&T,&T)->bool {
-//     pub fn new(iter: I, pred: F) -> EQIter<T,I,F> {
-//         EQIter { iterator: iter.peekable(), last_seen: None, predicate: pred }
-//     }
-// }
-// 
-// impl<T,I,F> Iterator for EQIter<T,I,F> where T:Clone, I:Iterator<Item=T>, F:Fn(&T,&T)->bool {
-//     type Item = T;
-// 
-//     fn next(&mut self) -> Option<T> {
-//         if self.last_seen.is_none() {
-//             let n = self.iterator.next();
-//             self.last_seen = n.clone();
-//             n
-//         } else {
-//             let l: &T = self.last_seen.as_ref().unwrap();
-//             let p = &self.predicate;
-//             if self.iterator.peek().is_none() {
-//                 None
-//             } else if !p(l, self.iterator.peek().unwrap()) {
-//                 None
-//             } else {
-//                 self.iterator.next()
-//             }
-//         }
-//     }
-// }
