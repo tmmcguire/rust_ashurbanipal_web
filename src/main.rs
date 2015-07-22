@@ -24,6 +24,9 @@ extern crate rustful;
 extern crate rustc_serialize;
 extern crate iterator_utilities;
 
+#[macro_use]
+mod macros;
+
 mod combination;
 mod index;
 mod mbitset;
