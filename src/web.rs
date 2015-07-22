@@ -20,6 +20,7 @@
  * 02110-1301 USA.
  */
 
+use std::error::Error;
 use std::path::Path;
 use std::str::FromStr;
 
@@ -56,7 +57,8 @@ pub enum RecQuery {
 
 impl Handler for RecQuery {
     fn handle_request(&self, context: Context, response: Response) {
-        let &RecState(ref style, ref topic, _, _) = context.global.get().unwrap();
+        let &RecState(ref style, ref topic, _, _)
+            = panic_unless!("recstate", option: context.global.get());
         match *self {
             RecQuery::Style       => handle_recommendation_query(style, context, response),
             RecQuery::Topic       => handle_recommendation_query(topic, context, response),
@@ -66,9 +68,10 @@ impl Handler for RecQuery {
         }
     }
 }
-    
+
 fn handle_recommendation_query(r : &Recommendation, context: Context, mut response: Response) {
-    let &RecState(_, _, ref metadata, _) = context.global.get().unwrap();
+    let &RecState(_, _, ref metadata, _)
+        = panic_unless!("recstate", option: context.global.get());
     let start = optional("start", 0, &context);
     let limit = optional("limit", 20, &context);
     match required("etext_no", &context) {
@@ -79,8 +82,16 @@ fn handle_recommendation_query(r : &Recommendation, context: Context, mut respon
                         count : rows.len(),
                         rows  : metadata.add_metadata(&rows, start, limit)
                     };
-                    response.set_status(StatusCode::Ok);
-                    response.into_writer().send( json::encode(&recommendation).unwrap() );
+                    match json::encode(&recommendation) {
+                        Ok(json) => {
+                            response.set_status(StatusCode::Ok);
+                            response.into_writer().send(json);
+                        }
+                        Err(e) => {
+                            response.set_status(StatusCode::InternalServerError);
+                            response.into_writer().send(e.description());
+                        }
+                    }
                 }
                 None => {
                     response.set_status(StatusCode::NotFound);
@@ -96,13 +107,22 @@ fn handle_recommendation_query(r : &Recommendation, context: Context, mut respon
 }
 
 fn handle_text_query(context: Context, mut response: Response) {
-    let &RecState(_, _, ref metadata, _) = context.global.get::<RecState>().unwrap();
+    let &RecState(_, _, ref metadata, _)
+        = panic_unless!("recstate", option: context.global.get());
     match required_path("etext_no", &context) {
         Some(etext_no) => {
             match metadata.get(etext_no) {
                 Some(text) => {
-                    response.set_status(StatusCode::Ok);
-                    response.into_writer().send( json::encode( text ).unwrap() )
+                    match json::encode(text) {
+                        Ok(json) => {
+                            response.set_status(StatusCode::Ok);
+                            response.into_writer().send(json);
+                        }
+                        Err(e) => {
+                            response.set_status(StatusCode::InternalServerError);
+                            response.into_writer().send(e.description());
+                        }
+                    }
                 }
                 None => {
                     response.set_status(StatusCode::NotFound);
@@ -118,7 +138,8 @@ fn handle_text_query(context: Context, mut response: Response) {
 }
 
 fn handle_text_search(context: Context, mut response: Response) {
-    let &RecState(_, _, ref metadata, ref index) = context.global.get().unwrap();
+    let &RecState(_, _, ref metadata, ref index)
+        = panic_unless!("recstate", option: context.global.get());
     let start = optional("start", 0, &context);
     let limit = optional("limit", 20, &context);
     match required::<String>("query", &context) {
@@ -128,8 +149,16 @@ fn handle_text_search(context: Context, mut response: Response) {
                 count : rows.len(),
                 rows  : metadata.add_metadata(&rows, start, limit),
             };
-            response.set_status(StatusCode::Ok);
-            response.into_writer().send( json::encode(&recommendations).unwrap() );
+            match json::encode(&recommendations) {
+                Ok(json) => {
+                    response.set_status(StatusCode::Ok);
+                    response.into_writer().send(json);
+                }
+                Err(e) => {
+                    response.set_status(StatusCode::InternalServerError);
+                    response.into_writer().send(e.description());
+                }
+            }
         }
         None => {
             response.set_status(StatusCode::BadRequest);

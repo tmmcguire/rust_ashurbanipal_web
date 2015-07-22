@@ -96,7 +96,7 @@ impl<I:Iterator<Item=char>> Processor<I> {
         // * H → If previous or next is non-vowel, previous.
         if self.iter[0] == 'h' {
             // Note: !opening -> last == Some(_)
-            let last = self.last.unwrap();
+            let last = panic_unless!("nysiis opening", option: self.last);
             if !is_vowel(&last) || (self.iter.len() > 1 && !is_vowel(&self.iter[1])) {
                 self.iter[0] = last;
             }
@@ -106,7 +106,8 @@ impl<I:Iterator<Item=char>> Processor<I> {
     fn w_rule(&mut self) {
         // * W → If previous is vowel, A.
         if self.iter[0] == 'w' {
-            let last = self.last.unwrap();
+            // Note: !opening -> last == Some(_)
+            let last = panic_unless!("nysiis opening", option: self.last);
             if is_vowel(&last) {
                 self.iter[0] = 'a';
             }

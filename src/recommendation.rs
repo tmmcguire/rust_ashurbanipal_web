@@ -34,7 +34,8 @@ pub trait Recommendation : Sync {
     /// sorted by score.
     fn sorted_results(&self, etext_no : Etext) -> Option<Vec<(Etext,Score)>> {
         self.scored_results(etext_no).map( |mut results| {
-            results.sort_by( |&(_,l),&(_,r)| l.partial_cmp(&r).unwrap() );
+            results.sort_by( |&(_,l),&(_,r)| panic_unless!("recommendation results",
+                                                           option: l.partial_cmp(&r)) );
             results
         })
     }

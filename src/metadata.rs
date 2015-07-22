@@ -102,12 +102,14 @@ pub struct Metadata {
 impl Metadata {
     pub fn read<P : AsRef<Path>>(path:P) -> Metadata {
         let texts: HashMap<Etext,Text> = 
-            BufReader::new( File::open(path).unwrap() ).lines()
+            BufReader::new( panic_unless!("metadata", result: File::open(path)) ).lines()
+            // file header
             .skip(1)
             .map( |line| {
-                let line  = line.unwrap();
+                let line  = panic_unless!("metadata", result: line);
                 let elements: Vec<&str> = line.split('\t').collect();
-                let etext_no: Etext = elements[0].parse().unwrap();
+                let etext_no: Etext = panic_unless!("etext number",
+                                                    result: elements[0].parse());
                 let t = Text {
                       etext_no:          etext_no,
                       link:              elements[1].to_string(),
@@ -144,7 +146,7 @@ impl Metadata {
             .map( |&(e,s)| (self.get(e),s) )
             // filter out texts with no metadata
             .filter( |&(ref o,_)| o.is_some() )
-            // combine the metadata and scored result
+            // combine the metadata and scored result: unwrap always succeds
             .map( |(ref o,s)| o.unwrap().score(s) )
             // produce a vector
             .collect()

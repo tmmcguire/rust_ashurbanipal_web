@@ -72,17 +72,18 @@ impl Topic {
     ///
     pub fn read<P : AsRef<Path>>(path : P) -> Topic {
         let (etexts, vectors) : (Vec<Etext>,Vec<MBitSet>) =
-            BufReader::new( unpack!(File::open(path), "topic data") ).lines()
+            BufReader::new( panic_unless!("topic data", result: File::open(path)) ).lines()
             .map( |line| {
-                let line            = line.unwrap();
+                let line            = panic_unless!("topic data", result: line);
                 let mut elements    = line.split('\t');
                 // The first element of each line is the etext number.
-                let etext_no: Etext = expect!( elements.nth(0)
-                                               .and_then(|s| s.parse().ok()),
-                                               "bad etext number");
+                let etext_no: Etext = panic_unless!("etext number",
+                                                    option: elements.nth(0)
+                                                    .and_then(|s| s.parse().ok())
+                                                    );
                 // The remaining elements are common-noun bit numbers for the etext.
                 let etext_data = elements
-                    .map( |s| expect!(s.parse().ok(), "topic data") )
+                    .map( |s| panic_unless!("topic data", result: s.parse::<usize>()) )
                     .collect();
                 (etext_no, etext_data)
             } ).unzip();

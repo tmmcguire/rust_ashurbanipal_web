@@ -1,14 +1,10 @@
 
 #[macro_export]
-macro_rules! unpack {
-    ($e:expr,$m:expr) => ( match $e {
-        Ok(v) => v,
-        Err(e) => panic!(format!("{}: {}", $m, e.to_string())),
-        })
-}
-
-/// Macro for handling Options
-#[macro_export]
-macro_rules! expect {
-    ($e:expr,$m:expr) => ( match $e { Some(e) => e, None => panic!($m), })
+macro_rules! panic_unless {
+    ($m:expr,option: $e:expr) => ( match $e { Some(v) => v,
+                                              None => panic!($m),
+    } );
+    ($m:expr,result: $e:expr) => ( match $e { Ok(v) => v,
+                                              Err(e) => panic!(format!("{}: {}", $m, e)),
+    } )
 }

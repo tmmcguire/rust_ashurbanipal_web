@@ -75,17 +75,18 @@ impl Style {
     ///
     pub fn read<P : AsRef<Path>>(path : P) -> Style {
         let (etexts, vectors) : (Vec<Etext>,Vec<Vec<Score>>) =
-            BufReader::new( unpack!(File::open(path), "style data") ).lines()
+            BufReader::new( panic_unless!("style data", result: File::open(path)) ).lines()
             .map( |line| {
-                let line                 = line.unwrap();
+                let line                 = panic_unless!("style_data", result: line);
                 let mut elements         = line.split('\t');
                 // The first element of each line is the etext number.
-                let etext_no: Etext = expect!( elements.nth(0)
-                                               .and_then(|s| s.parse().ok()),
-                                               "missing etext number" );
+                let etext_no: Etext = panic_unless!("etext number",
+                                                    option: elements.nth(0)
+                                                    .and_then(|s| s.parse().ok())
+                                                    );
                 // The remaining elements are part-of-speech data for the etext.
                 let etext_data: Vec<Proportion> = elements
-                    .map( |s| expect!( s.parse().ok(), "bad style data" ) )
+                    .map( |s| panic_unless!("style data", result: s.parse::<Proportion>()) )
                     .collect();
                 (etext_no, etext_data)
             } ).unzip();
