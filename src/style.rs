@@ -1,7 +1,7 @@
 //! Part-of-speech and style recommendation utilities.
 
 /*
- * ashurbanipal.web: Java Servlet-based interface to Ashurbanipal data
+ * ashurbanipal.web: Rust Rustful-based interface to Ashurbanipal data
  * Copyright 2015 Tommy M. McGuire
  * 
  * This program is free software; you can redistribute it and/or modify
