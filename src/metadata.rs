@@ -77,24 +77,6 @@ impl Text {
     }
 }
 
-impl Default for Text {
-    fn default() -> Text {
-        Text {
-            etext_no:          0,
-            link:              "".to_string(),
-            title:             "".to_string(),
-            author:            "".to_string(),
-            subject:           "".to_string(),
-            language:          "".to_string(),
-            release_date:      "".to_string(),
-            loc_class:         "".to_string(),
-            notes:             "".to_string(),
-            copyright_status:  "".to_string(),
-            score:             None
-        }
-    }
-}
-
 pub struct Metadata {
     metadata:     HashMap<Etext,Text>,
 }
