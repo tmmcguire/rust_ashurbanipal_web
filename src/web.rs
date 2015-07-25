@@ -85,23 +85,23 @@ fn handle_recommendation_query(r : &Recommendation, context: Context, mut respon
                     match json::encode(&recommendation) {
                         Ok(json) => {
                             response.set_status(StatusCode::Ok);
-                            response.into_writer().send(json);
+                            response.send(json);
                         }
                         Err(e) => {
                             response.set_status(StatusCode::InternalServerError);
-                            response.into_writer().send(e.description());
+                            response.send(e.description());
                         }
                     }
                 }
                 None => {
                     response.set_status(StatusCode::NotFound);
-                    response.into_writer().send("no matching etext");
+                    response.send("no matching etext");
                 }
             }
         }
         None => {
             response.set_status(StatusCode::BadRequest);
-            response.into_writer().send("parameter required: etext_no");
+            response.send("parameter required: etext_no");
         }
     };
 }
@@ -116,23 +116,23 @@ fn handle_text_query(context: Context, mut response: Response) {
                     match json::encode(text) {
                         Ok(json) => {
                             response.set_status(StatusCode::Ok);
-                            response.into_writer().send(json);
+                            response.send(json);
                         }
                         Err(e) => {
                             response.set_status(StatusCode::InternalServerError);
-                            response.into_writer().send(e.description());
+                            response.send(e.description());
                         }
                     }
                 }
                 None => {
                     response.set_status(StatusCode::NotFound);
-                    response.into_writer().send(format!("no matching etext: {}", etext_no));
+                    response.send(format!("no matching etext: {}", etext_no));
                 }
             }
         }
         None => {
             response.set_status(StatusCode::BadRequest);
-            response.into_writer().send("parameter problem: lookup/<etext_no>");
+            response.send("parameter problem: lookup/<etext_no>");
         }
     }
 }
@@ -152,17 +152,17 @@ fn handle_text_search(context: Context, mut response: Response) {
             match json::encode(&recommendations) {
                 Ok(json) => {
                     response.set_status(StatusCode::Ok);
-                    response.into_writer().send(json);
+                    response.send(json);
                 }
                 Err(e) => {
                     response.set_status(StatusCode::InternalServerError);
-                    response.into_writer().send(e.description());
+                    response.send(e.description());
                 }
             }
         }
         None => {
             response.set_status(StatusCode::BadRequest);
-            response.into_writer().send("missing argument: query");
+            response.send("missing argument: query");
         }
     }
 }
