@@ -27,13 +27,14 @@ use std::ops::Add;
 use std::path::Path;
 
 use recommendation::{Etext,Recommendation,Score};
+use matrix::Matrix2;
 
 type Proportion = f64;
 
 /// Part-of-speech / style data
 pub struct Style {
     /// Part-of-speech data, in matrix form.
-    data           : Vec<Vec<Proportion>>,
+    data           : Matrix2<Proportion>,
     /// Map to convert etext number to index into data rows.
     etext_to_index : HashMap<Etext,usize>,
     /// Map to convert data row index into an etext number.
@@ -92,7 +93,7 @@ impl Style {
             } ).unzip();
 
         Style {
-            data           : vectors,
+            data           : Matrix2::new(&vectors),
             // Create the mappings from vector index to etext number, and vice versa.
             etext_to_index : etexts.iter()
                 // duplicate etext_nos
@@ -135,7 +136,7 @@ impl Recommendation for Style {
             Some(idx) => &self.data[*idx],
         };
 
-        let x = self.data.iter()
+        let x = self.data.rows()
             // Compute the distance from row to v.
             .map( |v| distance(v,row) )
             // Associated each distance with its index.
@@ -150,7 +151,7 @@ impl Recommendation for Style {
 }
 
 /// Compute the Euclidian distance between the two vectors.
-fn distance(v1 : &Vec<Score>, v2 : &Vec<Score>) -> Score {
+fn distance(v1 : &[Score], v2 : &[Score]) -> Score {
     assert_eq!(v1.len(), v2.len());
     let sq = v1.iter()
         // Match each element with that from the other vector.

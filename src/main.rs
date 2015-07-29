@@ -29,6 +29,7 @@ mod macros;
 
 mod combination;
 mod index;
+mod matrix;
 mod mbitset;
 mod metadata;
 mod nysiis;
