@@ -24,11 +24,21 @@
 
 use iterator_utilities::buffer::IteratorBuffer;
 
+#[allow(dead_code)]
 pub fn encode(s: &str) -> String {
     Processor::new(s.chars()
                    .filter( |ch| ch.is_alphabetic() )
                    .flat_map( |ch| ch.to_lowercase() )
                    ).collect()
+}
+
+pub fn encode_strict(s: &str) -> String {
+    Processor::new(s.chars()
+                   .filter( |ch| ch.is_alphabetic() )
+                   .flat_map( |ch| ch.to_lowercase() )
+                   )
+        .take(6)
+        .collect()
 }
 
 struct Processor<I> where I: Iterator, I::Item: Clone {
@@ -137,12 +147,8 @@ impl<I:Iterator<Item=char>> Iterator for Processor<I> {
     type Item = char;
 
     fn next(&mut self) -> Option<char> {
-        if self.iter.is_opening() {
-            self.openings();
-        }
-        if self.iter.is_closing() {
-            self.closings();
-        }
+        if self.iter.is_opening() { self.openings(); }
+        if self.iter.is_closing() { self.closings(); }
         // First character of key = first character of name.
         if !self.iter.is_opening() && self.iter.len() > 0 {
             self.transcoding();
@@ -237,4 +243,40 @@ fn test4() {
     assert_eq!(encode("browne"),      "bran");
     assert_eq!(encode("shakespeare"), "sacaspar");
     assert_eq!(encode("shakespear"),  "sacaspar");
+}
+#[test]
+fn test5() {
+    assert_eq!(encode_strict("macbeth"),    "mcbat");
+    assert_eq!(encode_strict("knuth"),      "nat");
+    assert_eq!(encode_strict("kirk"),       "carc");
+    assert_eq!(encode_strict("phineas"),    "fana");
+    assert_eq!(encode_strict("pfaust"),     "fast");
+    assert_eq!(encode_strict("schwindler"), "swandl");
+}
+
+#[test]
+fn test6() {
+    assert_eq!(encode_strict("levee"),   "lafy");
+    assert_eq!(encode_strict("cookie"),  "cacy");
+    assert_eq!(encode_strict("fondt"),   "fand");
+    assert_eq!(encode_strict("yogurt"),  "yagad");
+    assert_eq!(encode_strict("word"),    "wad");
+    assert_eq!(encode_strict("valiant"), "valad");
+    assert_eq!(encode_strict("viand"),   "vad");
+}
+
+#[test]
+fn test7() {
+    assert_eq!(encode_strict("pequant"), "pagad");
+    assert_eq!(encode_strict("lazy"),    "lasy");
+    assert_eq!(encode_strict("yammer"),  "yanar");
+    assert_eq!(encode_strict("aha"),     "ah");
+}
+
+#[test]
+fn test8() {
+    assert_eq!(encode_strict("brown"),       "bran");
+    assert_eq!(encode_strict("browne"),      "bran");
+    assert_eq!(encode_strict("shakespeare"), "sacasp");
+    assert_eq!(encode_strict("shakespear"),  "sacasp");
 }

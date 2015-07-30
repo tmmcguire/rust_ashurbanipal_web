@@ -26,7 +26,7 @@ use std::collections::HashMap;
 use iterator_utilities::equivalence_class::equivalence_classes;
 
 use metadata::Metadata;
-use nysiis::encode;
+use nysiis::encode_strict;
 use recommendation::{Etext,Score};
 
 type ScoredResult = (Etext,Score);
@@ -43,9 +43,9 @@ impl Index {
         // Compute a vector of keyword, etext_no, simple score triples.
         let mut postings: Vec<(String,Etext,Score)> = Vec::new();
         for (&etext_no, text) in metadata.iter() {
-            postings.extend( text.title.split(' ').map(encode).map( |t| (t, etext_no, 3.0) ) );
-            postings.extend( text.author.split(' ').map(encode).map( |a| (a, etext_no, 2.0) ) );
-            postings.extend( text.subject.split(' ').map(encode).map( |s| (s, etext_no, 1.0) ) );
+            postings.extend( text.title.split(' ').map(encode_strict).map( |t| (t, etext_no, 3.0) ) );
+            postings.extend( text.author.split(' ').map(encode_strict).map( |a| (a, etext_no, 2.0) ) );
+            postings.extend( text.subject.split(' ').map(encode_strict).map( |s| (s, etext_no, 1.0) ) );
         }
         // Sort postings by keyword, then by etext_no.
         postings.sort_by(compare);
@@ -66,7 +66,7 @@ impl Index {
 
     pub fn get_entries(&self, s: &str) -> Vec<ScoredResult> {
         let mut results = Vec::new();
-        for key in s.split(' ').map( encode ) {
+        for key in s.split(' ').map( encode_strict ) {
             self.accept_or_merge_postings(&mut results, &key);
         }
         // Sort results by score, decreasing.
